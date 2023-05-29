@@ -1,0 +1,20 @@
+- hosts: all
+  become: yes
+  tasks:
+    - name: traefik-reverse-proxy
+      community.docker.docker_container:
+        name: traefik
+        image: traefik:v2.10
+        command: --api.insecure=true --providers.docker
+        ports:
+          - "80:80"
+          - "8080:8080"
+        volumes:
+          # So that Traefik can listen to the Docker events
+          - /var/run/docker.sock:/var/run/docker.sock
+    - name: whoami
+      community.docker.docker_container:
+        name: whoami
+        image: traefik/whoami
+        labels:
+          "traefik.http.routers.whoami.rule=Host(`whoami.headshed.dev`)"
